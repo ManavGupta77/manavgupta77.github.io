@@ -351,8 +351,12 @@ function nextQuestion(){ clearAllTimers(); stopConfetti(); currentQuestion++; if
 
 /* ====== FINISH ====== */
 function finishQuiz(){
-  clearAllTimers(); stopConfetti(); quizEl.style.display = 'none'; endScreen.style.display = 'block';
+  clearAllTimers();
+  stopConfetti();
+  quizEl.style.display = 'none';
+  endScreen.style.display = 'block';
   endText.textContent = `🎉 Well done, ${playerName}!`;
+
   const totalTimeSec = Math.floor((Date.now() - startTime)/1000);
   const avgSec = (totalTimeSec/quizData.length).toFixed(1);
   scoreText.textContent = `${score} / ${quizData.length}`;
@@ -360,9 +364,16 @@ function finishQuiz(){
   wrongText.textContent = wrong;
   timeText.textContent = totalTimeSec + "s";
   avgTimeText.textContent = avgSec + "s";
+
   saveScoreToFirebase(playerName, score, totalTimeSec);
+
+  // 👇 unhide leaderboard
+  leaderboardDiv.style.display = "block";
+  leaderboardDiv.hidden = false;
+
   loadLeaderboard();
 }
+
 
 /* ====== EXIT ====== */
 exitBtn.addEventListener('click', () => { finishQuiz(); });
@@ -485,6 +496,7 @@ window.addEventListener('beforeunload', () => { clearAllTimers(); stopConfetti()
 </script>
 </body>
 </html>
+
 
 
 
