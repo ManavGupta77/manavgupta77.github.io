@@ -368,16 +368,25 @@ function loadLeaderboard() {
   leaderboardDiv.innerHTML = "<h3>🏆 Leaderboard</h3>";
   db.collection("leaderboard")
     .orderBy("score", "desc")
-    .limit(20) // fetch more, sort later
+    .limit(20)
     .get()
     .then((querySnapshot) => {
+      console.log("Fetched docs:", querySnapshot.size); // 🔍 log how many docs
       let entries = [];
       querySnapshot.forEach((doc) => {
+        console.log("Doc data:", doc.data()); // 🔍 log each doc
         const data = doc.data();
         if (data.score !== undefined && data.totalTime !== undefined) {
           entries.push(data);
         }
       });
+
+      console.log("Filtered entries:", entries.length);
+
+      if (entries.length === 0) {
+        leaderboardDiv.innerHTML += "<p>No scores yet!</p>";
+        return;
+      }
 
       // Sort manually: score desc, then time asc
       entries.sort((a, b) => {
@@ -402,10 +411,6 @@ function loadLeaderboard() {
           </p>`;
         rank++;
       });
-
-      if (entries.length === 0) {
-        leaderboardDiv.innerHTML += "<p>No scores yet!</p>";
-      }
     })
     .catch((error) => {
       console.error("Error loading leaderboard: ", error);
@@ -414,9 +419,11 @@ function loadLeaderboard() {
 }
 
 
+
 window.addEventListener('beforeunload', () => { clearAllTimers(); stopConfetti(); });
 </script>
 </body>
 </html>
+
 
 
