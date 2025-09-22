@@ -365,52 +365,43 @@ function saveScoreToFirebase(name, score, totalTime) {
 }
   
 function loadLeaderboard() {
-  leaderboardDiv.innerHTML = "<h3>🏆 Leaderboard</h3>";
   db.collection("leaderboard")
     .orderBy("score", "desc")
     .limit(20)
     .get()
     .then((querySnapshot) => {
-      console.log("Fetched docs:", querySnapshot.size); // 🔍 log how many docs
       let entries = [];
       querySnapshot.forEach((doc) => {
-        console.log("Doc data:", doc.data()); // 🔍 log each doc
         const data = doc.data();
         if (data.score !== undefined && data.totalTime !== undefined) {
           entries.push(data);
         }
       });
 
-      console.log("Filtered entries:", entries.length);
-
-      if (entries.length === 0) {
-        leaderboardDiv.innerHTML += "<p>No scores yet!</p>";
-        return;
-      }
-
-      // Sort manually: score desc, then time asc
+      // Sort manually
       entries.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
         return a.totalTime - b.totalTime;
       });
 
-      // Take top 10
-      entries = entries.slice(0, 10);
-
+      // Build leaderboard HTML
+      let html = "<h3>🏆 Leaderboard</h3>";
       let rank = 1;
-      entries.forEach((data) => {
+      entries.slice(0, 10).forEach((data) => {
         let cssClass = "";
         let medal = rank + ".";
-        if(rank === 1){ cssClass = "gold"; medal = "🥇"; }
-        else if(rank === 2){ cssClass = "silver"; medal = "🥈"; }
-        else if(rank === 3){ cssClass = "bronze"; medal = "🥉"; }
+        if (rank === 1) { cssClass = "gold"; medal = "🥇"; }
+        else if (rank === 2) { cssClass = "silver"; medal = "🥈"; }
+        else if (rank === 3) { cssClass = "bronze"; medal = "🥉"; }
 
-        leaderboardDiv.innerHTML += `
+        html += `
           <p class="leaderboard-entry ${cssClass}">
             ${medal} <strong>${data.name}</strong> — ${data.score} pts (${data.totalTime}s)
           </p>`;
         rank++;
       });
+
+      leaderboardDiv.innerHTML = html; // 👈 write once, after loop
     })
     .catch((error) => {
       console.error("Error loading leaderboard: ", error);
@@ -418,12 +409,11 @@ function loadLeaderboard() {
     });
 }
 
-
-
 window.addEventListener('beforeunload', () => { clearAllTimers(); stopConfetti(); });
 </script>
 </body>
 </html>
+
 
 
 
