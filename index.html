@@ -363,17 +363,31 @@ function saveScoreToFirebase(name, score, totalTime) {
   .then(() => console.log("Score saved!"))
   .catch((error) => console.error("Error saving score: ", error));
 }
+  
 function loadLeaderboard() {
   leaderboardDiv.innerHTML = "<h3>🏆 Leaderboard</h3>";
   db.collection("leaderboard")
-    .orderBy("score", "desc")
-    .orderBy("totalTime", "asc")
-    .limit(10)
-    .onSnapshot((querySnapshot) => {
-      leaderboardDiv.innerHTML = "<h3>🏆 Leaderboard</h3>";
-      let rank = 1;
+    .get()
+    .then((querySnapshot) => {
+      let entries = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
+        if (data.score !== undefined && data.totalTime !== undefined) {
+          entries.push(data);
+        }
+      });
+
+      // Sort: score desc, then time asc
+      entries.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.totalTime - b.totalTime;
+      });
+
+      // Limit to top 10
+      entries = entries.slice(0, 10);
+
+      let rank = 1;
+      entries.forEach((data) => {
         let cssClass = "";
         let medal = rank + ".";
         if(rank === 1){ cssClass = "gold"; medal = "🥇"; }
@@ -386,7 +400,8 @@ function loadLeaderboard() {
           </p>`;
         rank++;
       });
-    }, (error) => {
+    })
+    .catch((error) => {
       console.error("Error loading leaderboard: ", error);
       leaderboardDiv.innerHTML = "<p>⚠️ Unable to load leaderboard</p>";
     });
@@ -396,3 +411,4 @@ window.addEventListener('beforeunload', () => { clearAllTimers(); stopConfetti()
 </script>
 </body>
 </html>
+
