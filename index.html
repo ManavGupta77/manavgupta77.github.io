@@ -106,10 +106,25 @@
   canvas#confetti{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:120}
 
   /* Leaderboard medals */
-  .leaderboard-entry { font-size: 1.1rem; margin: 6px 0; }
-  .gold { color: gold; font-weight: bold; }
-  .silver { color: silver; font-weight: bold; }
-  .bronze { color: #cd7f32; font-weight: bold; }
+  /* Leaderboard / medal styles (paste into your style block) */
+#leaderboard {
+  margin-top: 30px;
+  padding: 8px 16px;
+  text-align: center;
+  color: #fff !important;     /* ensure visibility on dark background */
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.leaderboard-entry { 
+  font-size: 1.05rem; 
+  margin: 6px 0; 
+  color: #fff;
+}
+.gold { color: gold; font-weight: 700; }
+.silver { color: silver; font-weight: 700; }
+.bronze { color: #cd7f32; font-weight: 700; }
+
 </style>
 </head>
 <body>
@@ -365,54 +380,112 @@ function saveScoreToFirebase(name, score, totalTime) {
 }
   
 function loadLeaderboard() {
+  console.log('loadLeaderboard() start — leaderboardDiv:', !!leaderboardDiv, leaderboardDiv);
+  // Defensive: ensure leaderboardDiv exists
+  if (!leaderboardDiv) {
+    console.error('leaderboardDiv is null or undefined — check getElementById location/timing');
+    return;
+  }
+
+  // show header immediately
+  leaderboardDiv.innerHTML = "<h3>🏆 Leaderboard</h3>";
+
+  // Fetch (we order only by score to avoid index issues, then sort tie-break by totalTime)
   db.collection("leaderboard")
     .orderBy("score", "desc")
-    .limit(20)
+    .limit(50)
     .get()
     .then((querySnapshot) => {
+      console.log("Fetched docs:", querySnapshot.size);
       let entries = [];
+
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.score !== undefined && data.totalTime !== undefined) {
-          entries.push(data);
+        console.log("Doc data:", doc.id, data);
+        // normalize: ensure numeric fields exist
+        if (typeof data.score === 'number' && typeof data.totalTime === 'number') {
+          entries.push({
+            name: data.name || "Anonymous",
+            score: data.score,
+            totalTime: data.totalTime,
+            timestamp: data.timestamp || null
+          });
+        } else {
+          // keep docs even if missing totalTime (optional)
+          entries.push({
+            name: data.name || "Anonymous",
+            score: (typeof data.score === 'number' ? data.score : 0),
+            totalTime: (typeof data.totalTime === 'number' ? data.totalTime : Number.MAX_SAFE_INTEGER),
+            timestamp: data.timestamp || null
+          });
         }
       });
 
-      // Sort manually
+      console.log("Entries before filtering/sort:", entries.length, entries);
+
+      if (entries.length === 0) {
+        leaderboardDiv.innerHTML += "<p style='color:#ccc'>No scores yet.</p>";
+        return;
+      }
+
+      // Sort client-side: score desc, then totalTime asc (fastest wins ties)
       entries.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
         return a.totalTime - b.totalTime;
       });
 
-      // Build leaderboard HTML
+      // Build HTML once (prevents repeated DOM writes)
       let html = "<h3>🏆 Leaderboard</h3>";
-      let rank = 1;
-      entries.slice(0, 10).forEach((data) => {
+      entries.slice(0, 10).forEach((data, idx) => {
+        const rank = idx + 1;
         let cssClass = "";
         let medal = rank + ".";
         if (rank === 1) { cssClass = "gold"; medal = "🥇"; }
         else if (rank === 2) { cssClass = "silver"; medal = "🥈"; }
         else if (rank === 3) { cssClass = "bronze"; medal = "🥉"; }
 
+        // ensure values are safe for display
+        const nm = escapeHtml(String(data.name || "Anonymous"));
+        const sc = Number.isFinite(data.score) ? data.score : 0;
+        const tt = Number.isFinite(data.totalTime) && data.totalTime !== Number.MAX_SAFE_INTEGER ? data.totalTime : "—";
+
         html += `
           <p class="leaderboard-entry ${cssClass}">
-            ${medal} <strong>${data.name}</strong> — ${data.score} pts (${data.totalTime}s)
+            ${medal} <strong>${nm}</strong> — ${sc} pts ${tt !== "—" ? `(${tt}s)` : ""}
           </p>`;
-        rank++;
       });
 
-      leaderboardDiv.innerHTML = html; // 👈 write once, after loop
+      // Insert once
+      leaderboardDiv.innerHTML = html;
+      console.log("Leaderboard HTML injected. length:", leaderboardDiv.innerHTML.length);
     })
     .catch((error) => {
       console.error("Error loading leaderboard: ", error);
-      leaderboardDiv.innerHTML = "<p>⚠️ Unable to load leaderboard</p>";
+      leaderboardDiv.innerHTML = "<p style='color:#f4b400;'>⚠️ Unable to load leaderboard</p>";
     });
+}
+
+/* small helper to avoid XSS if names contain HTML */
+function escapeHtml(str) {
+  return str.replace(/[&<>"'`=\/]/g, function(s) {
+    return ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+      '/': '&#x2F;',
+      '`': '&#x60;',
+      '=': '&#x3D;'
+    })[s];
+  });
 }
 
 window.addEventListener('beforeunload', () => { clearAllTimers(); stopConfetti(); });
 </script>
 </body>
 </html>
+
 
 
 
