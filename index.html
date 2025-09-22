@@ -371,6 +371,13 @@ function finishQuiz(){
   leaderboardDiv.style.display = "block";
   leaderboardDiv.hidden = false;
 
+  if (leaderboardDiv) {
+  leaderboardDiv.removeAttribute('hidden');            // remove hidden attr
+  leaderboardDiv.removeAttribute('wfd-invisible');     // editor artifact
+  leaderboardDiv.style.setProperty('display', 'block', 'important');
+  leaderboardDiv.style.setProperty('height', 'auto', 'important');
+  leaderboardDiv.style.setProperty('opacity', '1', 'important');
+}
   loadLeaderboard();
 }
 
@@ -496,6 +503,7 @@ window.addEventListener('beforeunload', () => { clearAllTimers(); stopConfetti()
 </script>
 </body>
 </html>
+
 
 
 
