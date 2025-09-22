@@ -367,6 +367,8 @@ function saveScoreToFirebase(name, score, totalTime) {
 function loadLeaderboard() {
   leaderboardDiv.innerHTML = "<h3>🏆 Leaderboard</h3>";
   db.collection("leaderboard")
+    .orderBy("score", "desc")
+    .limit(20) // fetch more, sort later
     .get()
     .then((querySnapshot) => {
       let entries = [];
@@ -377,13 +379,13 @@ function loadLeaderboard() {
         }
       });
 
-      // Sort: score desc, then time asc
+      // Sort manually: score desc, then time asc
       entries.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
         return a.totalTime - b.totalTime;
       });
 
-      // Limit to top 10
+      // Take top 10
       entries = entries.slice(0, 10);
 
       let rank = 1;
@@ -400,6 +402,10 @@ function loadLeaderboard() {
           </p>`;
         rank++;
       });
+
+      if (entries.length === 0) {
+        leaderboardDiv.innerHTML += "<p>No scores yet!</p>";
+      }
     })
     .catch((error) => {
       console.error("Error loading leaderboard: ", error);
@@ -407,8 +413,10 @@ function loadLeaderboard() {
     });
 }
 
+
 window.addEventListener('beforeunload', () => { clearAllTimers(); stopConfetti(); });
 </script>
 </body>
 </html>
+
 
