@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Class 10 Revision Quizlets</title>
+<style>
+  :root{
+    --bg: #121212;
+    --panel: #1e1e1e;
+    --muted: #ccc;
+    --accent-green: #1b5e20;
+    --accent-red: #b71c1c;
+    --btn-bg: #2a2a2a;
+    --border: #444;
+  }
+
+  html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Segoe UI, Roboto, Arial, sans-serif}
+  .center{text-align:center}
+  h1{font-size:2.2rem;margin:0 0 6px;font-weight:700}
+  h3{margin:0 0 18px;color:var(--muted);font-weight:400}
+
+  .start-btn, .restart-btn{
+    background:var(--btn-bg);
+    border:2px solid var(--border);
+    padding:12px 22px;
+    color:#fff;border-radius:9px;
+    cursor:pointer;font-size:1.05rem;
+    transition:transform .12s ease, background .12s;
+    margin-top:10px;
+  }
+  .start-btn:hover, .restart-btn:hover{transform:translateY(-3px);background:#333}
+
+  .wrap{
+    display:flex;align-items:center;justify-content:center;height:100%;
+    padding:20px;
+  }
+
+  .quiz {
+    display:none;
+    width:100%;
+    max-width:840px;
+    background:var(--panel);
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:20px 22px;
+    box-shadow:0 8px 30px rgba(0,0,0,.6);
+    position:relative;
+    overflow:visible;
+  }
+
+  .timer-bar {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:6px;
+    background:#333;
+    border-radius:6px 6px 0 0;
+    overflow:hidden;
+  }
+  #timeProgress {
+    height:100%;
+    width:100%;
+    background:#00e676;
+    transform-origin:left;
+    transform:scaleX(1);
+    transition:transform 1s linear;
+  }
+
+  .question-box{font-size:1.15rem;margin:20px 0 16px;padding:0}
+  .options{display:flex;flex-direction:column;gap:12px}
+  .option-btn{
+    background:var(--btn-bg);
+    border:1px solid var(--border);
+    padding:12px 14px;font-size:1rem;border-radius:8px;color:#fff;text-align:left;
+    cursor:pointer;transition:all .18s ease;outline:none;
+  }
+  .option-btn:hover{background:#333}
+  .option-btn:disabled{cursor:default;opacity:.9}
+
+  .correct{background:var(--accent-green)!important;border-color:#2e7d32!important;color:#fff}
+  .wrong{background:var(--accent-red)!important;border-color:#f44336!important;animation:shake .42s}
+  @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-5px)}100%{transform:translateX(0)}}
+  .highlight-correct{transform:scale(1.06);transition:transform .18s ease}
+
+  .popup{
+    position:absolute;left:50%;transform:translateX(-50%);top:-64px;background:#222;padding:10px 16px;border-radius:8px;
+    border:1px solid var(--border);opacity:0;pointer-events:none;transition:all .28s ease;font-weight:600;
+  }
+  .popup.show{top:-96px;opacity:1}
+
+  .end-screen{padding:40px 10px;text-align:center;color:#fff}
+  .end-screen h2{color:#fff;margin-bottom:12px}
+  .stats-box{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-top:20px}
+  .stat{background:#222;padding:20px;border-radius:12px;min-width:160px}
+  .stat h3{margin:0 0 6px;color:#aaa}
+  .stat p{font-size:1.4rem;margin:0;color:#fff}
+  .button-row{margin-top:20px}
+  #leaderboard{margin-top:30px;text-align:center;display:block}
+
+  .exit-container { text-align:right;margin-top:20px; }
+  .exit-btn { background:#b71c1c;border:none;padding:8px 16px;border-radius:6px;color:#fff;cursor:pointer;font-size:0.95rem; }
+  .exit-btn:hover {background:#f44336}
+
+  canvas#confetti{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:120}
+</style>
+</head>
+<body>
+<div class="wrap center">
+  <div>
+    <!-- Landing -->
+    <div id="landing" class="center">
+      <h1>Class 10 Revision Quizlets</h1>
+      <h3>by Manav Gupta, X-E</h3>
+      <button class="start-btn" id="startBtn">Start Quiz</button>
+    </div>
+
+    <!-- Name Input Screen -->
+    <div id="nameInputScreen" class="center" style="display:none">
+      <h2>Enter Your Details</h2>
+      <input type="text" id="playerName" placeholder="Your Name" style="padding:8px;border-radius:6px;border:1px solid #444;margin-bottom:12px"><br>
+      <button class="start-btn" id="beginQuiz">Begin Quiz</button>
+    </div>
+
+    <!-- Quiz -->
+    <div id="quiz" class="quiz" aria-live="polite">
+      <div class="timer-bar"><div id="timeProgress"></div></div>
+      <div id="question" class="question-box"></div>
+      <div id="options" class="options" role="group" aria-label="Answer choices"></div>
+      <div id="popup" class="popup" role="status" aria-live="assertive"></div>
+      <div class="exit-container"><button class="exit-btn" id="exitBtn">Exit</button></div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end" class="end-screen" style="display:none">
+      <h2 id="endText"></h2>
+      <div class="stats-box">
+        <div class="stat"><h3>Score</h3><p id="scoreText"></p></div>
+        <div class="stat"><h3>Correct</h3><p id="correctText"></p></div>
+        <div class="stat"><h3>Incorrect</h3><p id="wrongText"></p></div>
+        <div class="stat"><h3>Total Time</h3><p id="timeText"></p></div>
+        <div class="stat"><h3>Avg Time</h3><p id="avgTimeText"></p></div>
+      </div>
+      <div class="button-row">
+        <button id="restart" class="restart-btn">Restart Quiz</button>
+        <button id="returnHome" class="restart-btn">Return Home</button>
+      </div>
+      <div id="leaderboard"></div>
+    </div>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+/* ====== FIREBASE CONFIG ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAs2KPjIuiEajTiiywY404aCbu-vWf25qM",
+  authDomain: "quiz-leaderboard-51a97.firebaseapp.com",
+  projectId: "quiz-leaderboard-51a97",
+  storageBucket: "quiz-leaderboard-51a97.firebasestorage.app",
+  messagingSenderId: "135803403834",
+  appId: "1:135803403834:web:3846979dfcd037ac317f03"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ====== QUIZ DATA (all 50 questions) ====== */
+const quizData = [
+  {q:"Which AI model type uses human-defined if-then rules?",o:["Rule-based","Learning-based","Reinforcement","Neural"],a:0},
+  {q:"What are the main components of a rule-based AI model?",o:["Data, Model, Output","Knowledge Base, Inference Engine, Interface","Input, Hidden, Output","Training, Testing, Validation"],a:1},
+  {q:"Which component of a rule-based model applies rules to data?",o:["Interface","User","Inference Engine","Knowledge Base"],a:2},
+  {q:"Which type of AI model improves automatically with more data?",o:["Rule-based","Learning-based","Static","Symbolic"],a:1},
+  {q:"Rule-based models are best suited for which kind of tasks?",o:["Complex","Simple","Unknown","Creative"],a:1},
+  {q:"A major drawback of rule-based models is that they are?",o:["Adaptive","Rigid","Flexible","Self-learning"],a:1},
+  {q:"Which type of model is used for fraud detection and medical diagnosis?",o:["Rule-based","Learning-based","Static","Symbolic"],a:1},
+  {q:"Which learning category requires labeled data for training?",o:["Supervised","Unsupervised","Reinforcement","Semi-supervised"],a:0},
+  {q:"Email spam filtering is an example of which learning category?",o:["Supervised","Unsupervised","Reinforcement","Rule-based"],a:0},
+  {q:"Weather prediction using past data is an example of?",o:["Reinforcement","Supervised","Unsupervised","Random"],a:1},
+  {q:"Which learning type groups similar data without labels?",o:["Supervised","Reinforcement","Unsupervised","Hybrid"],a:2},
+  {q:"Customer segmentation in marketing is an example of?",o:["Supervised","Unsupervised","Reinforcement","Rule-based"],a:1},
+  {q:"Which ML category is based on trial-and-error feedback?",o:["Supervised","Reinforcement","Unsupervised","Rule-based"],a:1},
+  {q:"A reward function is central to which type of ML?",o:["Supervised","Reinforcement","Unsupervised","Semi-supervised"],a:1},
+  {q:"Self-driving cars primarily use which ML category?",o:["Reinforcement","Supervised","Unsupervised","Rule-based"],a:0},
+  {q:"Supervised learning deals with which kind of data?",o:["Unlabeled","Random","Labeled","Raw"],a:2},
+  {q:"Unsupervised learning is mainly used to find?",o:["Labels","Rewards","Patterns","Errors"],a:2},
+  {q:"In supervised learning, the output variable is called?",o:["Label","Cluster","State","Rule"],a:0},
+  {q:"In unsupervised learning, the data has how many labels?",o:["One","Many","None","Fixed"],a:2},
+  {q:"Classification is a subcategory of which ML model?",o:["Supervised","Unsupervised","Reinforcement","Rule-based"],a:0},
+  {q:"Predicting whether a student passes or fails is an example of?",o:["Regression","Clustering","Classification","Association"],a:2},
+  {q:"Which supervised learning subcategory predicts continuous values?",o:["Clustering","Regression","Classification","Association"],a:1},
+  {q:"House price prediction is an example of?",o:["Regression","Classification","Clustering","Reinforcement"],a:0},
+  {q:"Disease diagnosis is an example of which supervised model?",o:["Regression","Classification","Clustering","Reinforcement"],a:1},
+  {q:"What is the key difference between classification and regression?",o:["Regression is faster","Classification uses numbers","Classification = categories, Regression = values","Both are same"],a:2},
+  {q:"Predicting temperature tomorrow is an example of?",o:["Classification","Regression","Clustering","Reinforcement"],a:1},
+  {q:"Predicting whether tomorrow will be rainy or sunny is an example of?",o:["Regression","Classification","Clustering","Association"],a:1},
+  {q:"Which subcategory of unsupervised learning groups data into clusters?",o:["Association","Regression","Clustering","Classification"],a:2},
+  {q:"K-Means is a type of which unsupervised algorithm?",o:["Association","Clustering","Classification","Regression"],a:1},
+  {q:"Which clustering method creates a tree-like structure?",o:["K-Means","Hierarchical","DBSCAN","Random"],a:1},
+  {q:"In clustering, items in the same group are?",o:["Dissimilar","Similar","Independent","Random"],a:1},
+  {q:"Association learning is mainly used to find?",o:["Values","Categories","Rules","Labels"],a:2},
+  {q:"Which algorithm is commonly used in association learning?",o:["Apriori","K-Means","CNN","DBSCAN"],a:0},
+  {q:"Market Basket Analysis is an application of which method?",o:["Clustering","Association","Regression","Classification"],a:1},
+  {q:"'If a customer buys bread, they will likely buy butter' is an example of?",o:["Regression","Classification","Association","Clustering"],a:2},
+  {q:"Fraud detection using hidden patterns is an example of which learning type?",o:["Supervised","Unsupervised","Reinforcement","Rule-based"],a:1},
+  {q:"Which deep learning model is inspired by the human brain?",o:["CNN","ANN","RNN","SVM"],a:1},
+  {q:"In an ANN, which layer receives the raw data?",o:["Hidden","Input","Output","Pooling"],a:1},
+  {q:"In an ANN, which layer produces the final decision?",o:["Input","Hidden","Output","Convolution"],a:2},
+  {q:"The hidden layers of an ANN are used for?",o:["Storing data","Feature extraction","Display output","Data input"],a:1},
+  {q:"CNNs are most commonly used for analyzing what type of data?",o:["Text","Images","Numbers","Labels"],a:1},
+  {q:"Which CNN layer detects features like edges and textures?",o:["Convolution","Pooling","Fully Connected","Output"],a:0},
+  {q:"Which CNN layer reduces dimensions while preserving features?",o:["Convolution","Pooling","Hidden","Input"],a:1},
+  {q:"ReLU is an example of which CNN component?",o:["Pooling","Activation","Fully Connected","Input"],a:1},
+  {q:"Which CNN layer performs the final classification?",o:["Input","Convolution","Fully Connected","Pooling"],a:2},
+  {q:"Facial recognition systems are usually built using which DL model?",o:["CNN","ANN","RNN","Rule-based"],a:0},
+  {q:"Object detection in images is best done by which network?",o:["CNN","ANN","RNN","SVM"],a:0},
+  {q:"In CNNs, pooling helps in reducing what?",o:["Features","Dimensionality","Training data","Hidden layers"],a:1},
+  {q:"Which deep learning network is widely used in medical imaging?",o:["CNN","ANN","RNN","GAN"],a:0},
+  {q:"The three main layers of an ANN are?",o:["Input, Hidden, Output","Convolution, Pooling, Output","Regression, Classification, Clustering","Labeled, Unlabeled, Reinforced"],a:0}
+];
+
+/* ====== STATE ====== */
+const TOTAL_TIME = 15;
+let currentQuestion = 0;
+let timeLeft = TOTAL_TIME;
+let timerInterval = null;
+let actionTimeout = null;
+let answered = false;
+let confettiAnimId = null;
+let confettiParticles = [];
+let score = 0;
+let wrong = 0;
+let playerName = "";
+let startTime = null;
+
+/* ====== DOM ====== */
+const landing = document.getElementById('landing');
+const nameInputScreen = document.getElementById('nameInputScreen');
+const playerNameInput = document.getElementById('playerName');
+const startBtn = document.getElementById('startBtn');
+const beginQuiz = document.getElementById('beginQuiz');
+const quizEl = document.getElementById('quiz');
+const questionEl = document.getElementById('question');
+const optionsEl = document.getElementById('options');
+const popupEl = document.getElementById('popup');
+const timeProgress = document.getElementById('timeProgress');
+const endScreen = document.getElementById('end');
+const endText = document.getElementById('endText');
+const scoreText = document.getElementById('scoreText');
+const correctText = document.getElementById('correctText');
+const wrongText = document.getElementById('wrongText');
+const timeText = document.getElementById('timeText');
+const avgTimeText = document.getElementById('avgTimeText');
+const leaderboardDiv = document.getElementById('leaderboard');
+const restartBtn = document.getElementById('restart');
+const returnHome = document.getElementById('returnHome');
+const exitBtn = document.getElementById('exitBtn');
+
+/* confetti canvas */
+const confettiCanvas = document.getElementById('confetti');
+const confettiCtx = confettiCanvas.getContext('2d');
+function resizeCanvas(){ confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+/* ====== START / RESTART ====== */
+startBtn.addEventListener('click', () => {
+  landing.style.display = 'none';
+  nameInputScreen.style.display = 'block';
+});
+beginQuiz.addEventListener('click', () => {
+  playerName = playerNameInput.value.trim() || "Anonymous";
+  nameInputScreen.style.display = 'none';
+  endScreen.style.display = 'none';
+  quizEl.style.display = 'block';
+  currentQuestion = 0; score = 0; wrong = 0;
+  startTime = Date.now();
+  loadQuestion();
+});
+restartBtn.addEventListener('click', () => {
+  landing.style.display = 'block'; quizEl.style.display = 'none'; endScreen.style.display = 'none';
+});
+returnHome.addEventListener('click', () => {
+  landing.style.display = 'block'; quizEl.style.display = 'none'; endScreen.style.display = 'none';
+});
+
+/* ====== QUIZ FLOW ====== */
+function loadQuestion(){
+  clearAllTimers(); answered = false; resetPopup(); stopConfetti();
+  if(currentQuestion >= quizData.length){ finishQuiz(); return; }
+  const q = quizData[currentQuestion];
+  questionEl.textContent = `${currentQuestion+1}. ${q.q}`;
+  optionsEl.innerHTML = '';
+  q.o.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn'; btn.textContent = opt;
+    btn.onclick = () => handleAnswerClick(btn, idx, q.a);
+    optionsEl.appendChild(btn);
+  });
+  startTimer();
+}
+function handleAnswerClick(btn, idx, correctIdx){
+  if(answered) return; answered = true;
+  clearInterval(timerInterval); clearTimeout(actionTimeout);
+  disableAllButtons(true);
+  if(idx === correctIdx){ btn.classList.add('correct'); showPopup('Correct Answer! 🎉'); launchConfetti(); score++; }
+  else { btn.classList.add('wrong'); wrong++; const buttons = optionsEl.querySelectorAll('.option-btn'); const correctBtn = buttons[correctIdx]; if(correctBtn){ correctBtn.classList.add('correct','highlight-correct'); } showPopup("That's the wrong answer!"); }
+  actionTimeout = setTimeout(()=>{ stopConfetti(); nextQuestion(); }, 1500);
+}
+function handleTimeUp(){
+  if(answered) return; answered = true;
+  clearInterval(timerInterval); disableAllButtons(true);
+  const correctIdx = quizData[currentQuestion].a;
+  const buttons = optionsEl.querySelectorAll('.option-btn');
+  if(buttons[correctIdx]){ buttons[correctIdx].classList.add('correct','highlight-correct'); }
+  wrong++;
+  showPopup("Time's up!");
+  actionTimeout = setTimeout(()=>{ nextQuestion(); }, 1500);
+}
+function startTimer(){ clearInterval(timerInterval); timeLeft = TOTAL_TIME; updateTimerDisplay(); timerInterval = setInterval(()=>{ timeLeft--; if(timeLeft < 0) timeLeft = 0; updateTimerDisplay(); if(timeLeft <= 0){ clearInterval(timerInterval); handleTimeUp(); } }, 1000); }
+function updateTimerDisplay(){ const progress = timeLeft / TOTAL_TIME; timeProgress.style.transform = `scaleX(${progress})`; }
+function disableAllButtons(state){ const buttons = optionsEl.querySelectorAll('.option-btn'); buttons.forEach(b => b.disabled = state); }
+function resetPopup(){ popupEl.classList.remove('show'); popupEl.textContent = ''; }
+function showPopup(msg){ popupEl.textContent = msg; popupEl.classList.add('show'); setTimeout(()=> popupEl.classList.remove('show'), 1000); }
+function clearAllTimers(){ if(timerInterval) clearInterval(timerInterval); if(actionTimeout) clearTimeout(actionTimeout); }
+function nextQuestion(){ clearAllTimers(); stopConfetti(); currentQuestion++; if(currentQuestion < quizData.length){ loadQuestion(); } else { finishQuiz(); } }
+
+/* ====== FINISH ====== */
+function finishQuiz(){
+  clearAllTimers(); stopConfetti(); quizEl.style.display = 'none'; endScreen.style.display = 'block';
+  endText.textContent = `🎉 Well done, ${playerName}!`;
+  const totalTimeSec = Math.floor((Date.now() - startTime)/1000);
+  const avgSec = (totalTimeSec/quizData.length).toFixed(1);
+  scoreText.textContent = `${score} / ${quizData.length}`;
+  correctText.textContent = score;
+  wrongText.textContent = wrong;
+  timeText.textContent = totalTimeSec + "s";
+  avgTimeText.textContent = avgSec + "s";
+  saveScoreToFirebase(playerName, score);
+  loadLeaderboard();
+}
+
+/* ====== EXIT QUIZ ====== */
+exitBtn.addEventListener('click', () => { finishQuiz(); });
+
+/* ====== CONFETTI ====== */
+function launchConfetti(){ confettiParticles = []; const W = confettiCanvas.width; const H = confettiCanvas.height; for(let i=0;i<80;i++){ confettiParticles.push({ x: Math.random() * W, y: H + Math.random()*80, vx: (Math.random()-0.5) * 6, vy: -(Math.random() * 8 + 4), size: Math.random() * 6 + 4, rot: Math.random() * 360, color: `hsl(${Math.random()*360}, 90%, 60%)` }); } animateConfetti(); setTimeout(()=> { confettiParticles = []; }, 1600); }
+function animateConfetti(){ confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); for(let i=0;i<confettiParticles.length;i++){ const p = confettiParticles[i]; p.vy += 0.12; p.x += p.vx; p.y += p.vy; p.rot += p.vx * 2; confettiCtx.save(); confettiCtx.translate(p.x, p.y); confettiCtx.rotate(p.rot * Math.PI/180); confettiCtx.fillStyle = p.color; confettiCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6); confettiCtx.restore(); } confettiParticles = confettiParticles.filter(p => p.y < confettiCanvas.height + 200); if(confettiParticles.length > 0){ confettiAnimId = requestAnimationFrame(animateConfetti); } else { if(confettiAnimId) cancelAnimationFrame(confettiAnimId); confettiAnimId = null; confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); } }
+function stopConfetti(){ confettiParticles = []; if(confettiAnimId) cancelAnimationFrame(confettiAnimId); confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); }
+
+/* ====== FIREBASE SAVE & LOAD ====== */
+function saveScoreToFirebase(name, score) {
+  db.collection("leaderboard").add({ name, score, timestamp: new Date() })
+  .then(() => console.log("Score saved!"))
+  .catch((error) => console.error("Error saving score: ", error));
+}
+function loadLeaderboard() {
+  leaderboardDiv.innerHTML = "<h3>Leaderboard</h3>";
+  db.collection("leaderboard").orderBy("score", "desc").limit(5).get()
+    .then((querySnapshot) => {
+      let rank = 1;
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        leaderboardDiv.innerHTML += `<p><strong>${rank}. ${data.name}</strong> — ${data.score} pts</p>`;
+        rank++;
+      });
+    });
+}
+
+window.addEventListener('beforeunload', () => { clearAllTimers(); stopConfetti(); });
+</script>
+</body>
+</html>
