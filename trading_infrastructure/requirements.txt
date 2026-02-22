@@ -1,0 +1,13 @@
+# Core
+pyyaml
+python-dotenv
+sqlalchemy
+pandas
+numpy
+# Web server for webhook
+fastapi
+uvicorn
+# Brokers — add SDK packages here
+# Testing
+pytest
+pytest-asyncio

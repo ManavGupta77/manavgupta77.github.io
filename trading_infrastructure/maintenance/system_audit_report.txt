@@ -1,0 +1,317 @@
+
+======================================================================
+  TEST 1: ALL PYTHON FILES IN PROJECT
+======================================================================
+  __init__.py                                                   296 bytes
+  check_alignment.py                                          1,234 bytes
+  check_gaps.py                                                 956 bytes
+  data_diagnostic.py                                         12,675 bytes
+  find_spot.py                                                  994 bytes
+  fix_db.py                                                     956 bytes
+  fix_micro_gaps.py                                           1,592 bytes
+  patch_data_gaps.py                                          3,464 bytes
+  patch_spot_gaps.py                                          3,756 bytes
+  system_audit.py                                            18,776 bytes
+  test_breeze_auth.py                                         1,627 bytes
+  validate_options_data.py                                    4,521 bytes
+
+  Total Python files: 12
+
+======================================================================
+  TEST 2: DUPLICATE FILENAME DETECTION
+======================================================================
+  ✅ No duplicate filenames found
+
+======================================================================
+  TEST 3: BREEZE/OPTIONS COLLECTOR SCRIPTS
+======================================================================
+
+  📄 test_breeze_auth.py (1,627 bytes)
+
+  📄 validate_options_data.py (4,521 bytes)
+      ✓ Contains: options_ohlc → References options_ohlc
+
+======================================================================
+  TEST 4: DATABASE TABLES
+======================================================================
+  DB Path: C:\Rajat\trading_infrastructure\storage\databases\algo_trading.db
+  DB Size: 1223.1 MB
+  Tables: 9
+    legs                                       0 rows
+    market_data                          261,408 rows
+    options_ohlc                       3,656,086 rows
+    orders                                     2 rows
+    positions                                  0 rows
+    sessions                                   1 rows
+    sqlite_sequence                            1 rows
+    strategies                                 1 rows
+    strategy_state                             0 rows
+
+======================================================================
+  TEST 5: OPTIONS_OHLC TABLE ANALYSIS
+======================================================================
+
+  --- Schema ---
+    timestamp             TEXT        PK
+    instrument_key        TEXT        PK
+    tradingsymbol         TEXT        
+    instrument            TEXT        
+    expiry                TEXT        
+    strike                REAL        
+    option_type           TEXT        
+    open                  REAL        
+    high                  REAL        
+    low                   REAL        
+    close                 REAL        
+    volume                INTEGER     
+    oi                    INTEGER     
+
+  --- Indexes ---
+    sqlite_autoindex_options_ohlc_1
+    idx_opts_instrument_ts
+      CREATE INDEX idx_opts_instrument_ts 
+    ON options_ohlc (instrument, timestamp)
+    idx_opts_expiry_strike
+      CREATE INDEX idx_opts_expiry_strike 
+    ON options_ohlc (expiry, strike, option_type)
+    idx_opts_symbol
+      CREATE INDEX idx_opts_symbol 
+    ON options_ohlc (tradingsymbol)
+
+  Total rows: 3,656,086
+
+  --- Instruments ---
+    NIFTY               3,656,086 rows
+
+  --- Expiry Summary (first 20 & last 10) ---
+    Total expiries: 53
+    Expiry        Strikes  Types  Days    Candles  First TS
+    ----------------------------------------------------------------------
+    2025-02-06         21      2     4     62,801  2025-02-03T09:15:00
+    2025-02-13         21      2     5     78,216  2025-02-07T09:15:00
+    2025-02-20         21      2     5     78,083  2025-02-14T09:15:00
+    2025-02-27         21      2     4     63,000  2025-02-21T09:15:00
+    2025-03-06         21      2     4     62,986  2025-03-03T09:15:00
+    2025-03-13         21      2     5     78,749  2025-03-07T09:15:00
+    2025-03-20         21      2     4     63,000  2025-03-17T09:15:00
+    2025-03-27         21      2     5     78,749  2025-03-21T09:15:00
+    2025-04-03         21      2     3     47,248  2025-04-01T09:15:00
+    2025-04-17         21      2     4     62,995  2025-04-11T09:15:00
+    2025-04-24         21      2     4     63,000  2025-04-21T09:15:00
+    2025-05-08         21      2     5     78,750  2025-05-02T09:15:00
+    2025-05-15         21      2     5     78,750  2025-05-09T09:15:00
+    2025-05-22         21      2     5     78,012  2025-05-16T09:15:00
+    2025-05-29         21      2     5     78,750  2025-05-23T09:15:00
+    2025-06-05         21      2     4     63,000  2025-06-02T09:15:00
+    2025-06-12         21      2     5     78,750  2025-06-06T09:15:00
+    2025-06-19         21      2     5     78,750  2025-06-13T09:15:00
+    2025-06-26         21      2     5     78,750  2025-06-20T09:15:00
+    2025-07-03         21      2     3     47,250  2025-07-01T09:15:00
+                             ... (truncated) ...                          
+    2025-12-23         21      2     5     78,750  2025-12-17T09:15:00
+    2025-12-30         21      2     4     63,000  2025-12-24T09:15:00
+    2026-01-06         21      2     5     78,750  2025-12-31T09:15:00
+    2026-01-13         21      2     5     78,750  2026-01-07T09:15:00
+    2026-01-20         21      2     4     63,000  2026-01-14T09:15:00
+    2026-01-27         21      2     4     63,000  2026-01-21T09:15:00
+    2026-02-03         21      2     5     78,750  2026-01-28T09:15:00
+    2026-02-10         21      2     5     78,750  2026-02-04T09:15:00
+    2026-02-17         21      2     5     78,750  2026-02-11T09:15:00
+    2026-02-24          7      2     1      5,250  2026-02-17T09:15:00
+
+  --- Instrument Key Format (sample 5) ---
+    BREEZE|NIFTY|22300|CE|2025-02-06
+    BREEZE|NIFTY|22300|PE|2025-02-06
+    BREEZE|NIFTY|22350|CE|2025-02-06
+    BREEZE|NIFTY|22350|PE|2025-02-06
+    BREEZE|NIFTY|22400|CE|2025-02-06
+
+  --- TradingSymbol Format (sample 5) ---
+    NIFTY02DEC2525300CE
+    NIFTY02DEC2525300PE
+    NIFTY02DEC2525350CE
+    NIFTY02DEC2525350PE
+    NIFTY02DEC2525400CE
+
+  --- Timestamp Format (sample 5) ---
+    2025-02-03T09:15:00+05:30
+    2025-02-03T09:16:00+05:30
+    2025-02-03T09:17:00+05:30
+    2025-02-03T09:18:00+05:30
+    2025-02-03T09:19:00+05:30
+
+  --- Data Quality ---
+    Rows with zero/null close: 0 (0.0%)
+    Rows with zero/null volume: 326,426 (8.9%)
+    Rows with zero/null OI: 17,547 (0.5%)
+
+======================================================================
+  TEST 6: MARKET_DATA TABLE ANALYSIS
+======================================================================
+  Total rows: 261,408
+
+  --- Symbols ---
+    NIFTY_INDEX              261,408 rows  2023-03-23 to 2026-02-19
+
+======================================================================
+  TEST 7: ALL TABLE SCHEMAS
+======================================================================
+
+  --- Table: legs ---
+    leg_id                     TEXT         PK
+    position_id                TEXT         NOT NULL
+    strategy_id                TEXT         NOT NULL
+    session_id                 INTEGER      NOT NULL
+    symbol                     TEXT         NOT NULL
+    token                      TEXT         NOT NULL
+    exchange                   TEXT         NOT NULL
+    option_type                TEXT         NOT NULL
+    strike                     INTEGER      NOT NULL
+    side                       TEXT         NOT NULL
+    quantity                   INTEGER      NOT NULL
+    lot_size                   INTEGER      NOT NULL
+    entry_price                REAL         NOT NULL
+    entry_time                 TEXT         NOT NULL
+    exit_price                 REAL        
+    exit_time                  TEXT        
+    realized_pnl               REAL        
+    status                     TEXT         NOT NULL DEFAULT 'OPEN'
+    role                       TEXT         NOT NULL DEFAULT 'MAIN'
+    parent_leg_id              TEXT        
+
+  --- Table: market_data ---
+    timestamp                  DATETIME     PK NOT NULL
+    symbol                     TEXT         PK NOT NULL
+    open                       REAL        
+    high                       REAL        
+    low                        REAL        
+    close                      REAL        
+    volume                     INTEGER     
+    oi                         INTEGER      DEFAULT 0
+
+  --- Table: options_ohlc ---
+    timestamp                  TEXT         PK NOT NULL
+    instrument_key             TEXT         PK NOT NULL
+    tradingsymbol              TEXT         NOT NULL
+    instrument                 TEXT         NOT NULL
+    expiry                     TEXT         NOT NULL
+    strike                     REAL         NOT NULL
+    option_type                TEXT         NOT NULL
+    open                       REAL        
+    high                       REAL        
+    low                        REAL        
+    close                      REAL        
+    volume                     INTEGER      DEFAULT 0
+    oi                         INTEGER      DEFAULT 0
+
+  --- Table: orders ---
+    order_id                   TEXT         PK
+    leg_id                     TEXT        
+    position_id                TEXT        
+    strategy_id                TEXT         NOT NULL
+    session_id                 INTEGER      NOT NULL
+    order_type                 TEXT         NOT NULL
+    symbol                     TEXT         NOT NULL
+    token                      TEXT         NOT NULL
+    exchange                   TEXT         NOT NULL
+    side                       TEXT         NOT NULL
+    quantity                   INTEGER      NOT NULL
+    requested_price            REAL        
+    fill_price                 REAL        
+    status                     TEXT         NOT NULL DEFAULT 'PENDING'
+    broker_order_id            TEXT        
+    mode                       TEXT         NOT NULL DEFAULT 'PAPER'
+    created_at                 TEXT         NOT NULL
+    error_message              TEXT        
+
+  --- Table: positions ---
+    position_id                TEXT         PK
+    strategy_id                TEXT         NOT NULL
+    session_id                 INTEGER      NOT NULL
+    structure                  TEXT         NOT NULL
+    instrument                 TEXT         NOT NULL
+    expiry                     TEXT         NOT NULL
+    atm_strike                 INTEGER     
+    status                     TEXT         NOT NULL DEFAULT 'OPEN'
+    entry_time                 TEXT         NOT NULL
+    exit_time                  TEXT        
+    entry_premium              REAL        
+    exit_premium               REAL        
+    realized_pnl               REAL        
+
+  --- Table: sessions ---
+    session_id                 INTEGER      PK
+    date                       TEXT         NOT NULL
+    strategy_id                TEXT         NOT NULL
+    status                     TEXT         NOT NULL DEFAULT 'SCHEDULED'
+    entry_time                 TEXT        
+    exit_time                  TEXT        
+    realized_pnl               REAL        
+    notes                      TEXT        
+    created_at                 TEXT         NOT NULL
+
+  --- Table: sqlite_sequence ---
+    name                                   
+    seq                                    
+
+  --- Table: strategies ---
+    strategy_id                TEXT         PK
+    user_id                    TEXT         NOT NULL DEFAULT 'DEFAULT'
+    broker_id                  TEXT         NOT NULL DEFAULT 'UPSTOX'
+    name                       TEXT         NOT NULL
+    description                TEXT        
+    version                    TEXT         NOT NULL
+    strategy_type              TEXT         NOT NULL
+    direction                  TEXT         NOT NULL
+    instrument                 TEXT         NOT NULL
+    expiry_type                TEXT         NOT NULL
+    structure                  TEXT         NOT NULL
+    entry_triggers             TEXT         NOT NULL
+    default_params             TEXT        
+    is_active                  INTEGER      NOT NULL DEFAULT 0
+    mode                       TEXT         NOT NULL DEFAULT 'PAPER'
+    created_at                 TEXT         NOT NULL
+    updated_at                 TEXT         NOT NULL
+
+  --- Table: strategy_state ---
+    strategy_id                TEXT         PK
+    session_id                 INTEGER      NOT NULL
+    state_json                 TEXT         NOT NULL DEFAULT '{}'
+    updated_at                 TEXT         NOT NULL
+
+======================================================================
+  TEST 8: SCHEMA DRIFT CHECK
+======================================================================
+  Comparing options_ohlc in collector ensure_table() vs actual DB...
+  ✅ Schema matches: 13 columns
+     Columns: timestamp, instrument_key, tradingsymbol, instrument, expiry, strike, option_type, open, high, low, close, volume, oi
+
+======================================================================
+  TEST 9: BREEZE CONFIG CHECK
+======================================================================
+  ✅ BREEZE_API_KEY = ********... (32 chars)
+  ✅ BREEZE_SECRET_KEY = ********... (32 chars)
+
+======================================================================
+  TEST 10: DATA FOLDER CONTENTS
+======================================================================
+
+======================================================================
+  TEST 11: TOP-LEVEL DIRECTORY STRUCTURE
+======================================================================
+    📄 __init__.py
+    📄 check_alignment.py
+    📄 check_gaps.py
+    📄 data_diagnostic.py
+    📄 find_spot.py
+    📄 fix_db.py
+    📄 fix_micro_gaps.py
+    📄 patch_data_gaps.py
+    📄 patch_spot_gaps.py
+    📄 system_audit.py
+    📄 test_breeze_auth.py
+    📄 validate_options_data.py
+
+======================================================================
+  AUDIT COMPLETE
+======================================================================
