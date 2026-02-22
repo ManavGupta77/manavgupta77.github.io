@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+.venv/
+.Python
+
+# IDEs
+.vscode/
+.idea/
+
+# Secrets and environment files
+.env
+*.key
+*.pem
+secrets/
+keys/
+session_tokens.json
+breeze_session.json
+upstox_token.json
+upstox_token_core.json
+
+# Databases and large binaries
+*.db
+*.sqlite3
+trading_infrastructure/storage/
+trading_infrastructure/data/
+trading_infrastructure/storage/instrument_masters/
+storage/
+logs/
+*.log
+
+# Large data / caches / backups
+*.zip
+*.tar.gz
+*.bak
+
+# Tests / caches
+.pytest_cache/
+
+# OS
+Thumbs.db
+.DS_Store
